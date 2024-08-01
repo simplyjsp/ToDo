@@ -4,19 +4,294 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1e2530;
+            --primary-accent: #7fffd4;
+            --secondary-accent: #4a5568;
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-accent);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .input-container {
+            display: flex;
+            margin-bottom: 1rem;
+            gap: 10px;
+        }
+
+        #todo-input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: var(--text-color);
+            min-width: 0; /* Allows flex item to shrink below its content size */
+        }
+
+        #todo-input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        #add-button, #download-button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: var(--primary-accent);
+            color: var(--bg-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-radius: 5px;
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        #add-button:hover, #download-button:hover {
+            background-color: #6ce9c0;
+        }
+
+        #todo-list {
+            list-style-type: none;
+            margin-bottom: 1rem;
+        }
+
+        .todo-item {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .todo-text {
+            flex-grow: 1;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            word-break: break-word;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: var(--secondary-accent);
+        }
+
+        .todo-checkbox {
+            margin-right: 10px;
+            min-width: 20px;
+            height: 20px;
+        }
+
+        .todo-timestamp {
+            font-size: 0.8rem;
+            color: var(--secondary-accent);
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .delete-button {
+            background-color: var(--secondary-accent);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #2d3748;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .input-container, .button-container {
+                flex-direction: column;
+            }
+
+            #todo-input, #add-button, #download-button {
+                width: 100%;
+                font-size: 0.9rem;
+            }
+
+            .todo-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .todo-text {
+                margin-bottom: 5px;
+                width: 100%;
+            }
+
+            .delete-button {
+                margin-top: 5px;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>To-Do App</h1>
-        <div class="input-section">
-            <input type="text" id="taskInput" placeholder="Enter a new task">
-            <button id="addTask" class="btn primary">Add Task</button>
+        <div class="input-container">
+            <input type="text" id="todo-input" placeholder="Add a new task...">
+            <button id="add-button">Add Task</button>
         </div>
-        <ul id="taskList"></ul>
-        <button id="downloadTasks" class="btn secondary">Download Tasks</button>
+        <ul id="todo-list"></ul>
+        <div class="button-container">
+            <button id="download-button">Download Tasks</button>
+        </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        // JavaScript remains the same as in the previous version
+        const todoInput = document.getElementById('todo-input');
+        const addButton = document.getElementById('add-button');
+        const todoList = document.getElementById('todo-list');
+        const downloadButton = document.getElementById('download-button');
+
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        function renderTodos() {
+            todoList.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                li.className = 'todo-item';
+                li.innerHTML = `
+                    <span class="todo-text ${todo.completed ? 'completed' : ''}">
+                        <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} data-index="${index}">
+                        ${todo.text}
+                    </span>
+                    <span class="todo-timestamp">${new Date(todo.timestamp).toLocaleString()}</span>
+                    <button class="delete-button" data-index="${index}">Delete</button>
+                `;
+                todoList.appendChild(li);
+            });
+            saveTodos();
+        }
+
+        function addTodo() {
+            const todoText = todoInput.value.trim();
+            if (todoText) {
+                todos.push({
+                    text: todoText,
+                    completed: false,
+                    timestamp: new Date().toISOString()
+                });
+                todoInput.value = '';
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            renderTodos();
+        }
+
+        function toggleTodo(index) {
+            todos[index].completed = !todos[index].completed;
+            renderTodos();
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        function downloadTasks() {
+            let content = "To-Do List:\n\n";
+            todos.forEach((todo, index) => {
+                content += `${index + 1}. [${todo.completed ? 'X' : ' '}] ${todo.text}\n`;
+                content += `   Created: ${new Date(todo.timestamp).toLocaleString()}\n\n`;
+            });
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'todo-list.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        addButton.addEventListener('click', addTodo);
+
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTodo();
+            }
+        });
+
+        todoList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-button')) {
+                const index = e.target.getAttribute('data-index');
+                deleteTodo(index);
+            }
+            if (e.target.classList.contains('todo-checkbox')) {
+                const index = e.target.getAttribute('data-index');
+                toggleTodo(index);
+            }
+        });
+
+        downloadButton.addEventListener('click', downloadTasks);
+
+        renderTodos();
+    </script>
 </body>
 </html>
